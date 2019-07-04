@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 
 def get_stars(text_content):
+    # finding the number of stars using attribute
     img_tag = text_content.find('img')['alt']
     star = img_tag.split(" ")[0]
     return star
@@ -23,9 +24,11 @@ def grab_content(url):
     except Exception as e:
         print(e)
     soup = BeautifulSoup(page, 'html.parser')
+    # get the comment div
     target_style = "line-height:1.4em;margin-left:155px;border-left: 1px dotted #dbd5c5;padding:5px 10px;"
     target_text = soup.find_all('div', {'style':target_style})
-    #print(type(target_text))
+
+    # export to csv
     dict_list = get_dict_list(target_text)
     df = pd.DataFrame(dict_list)
     export_csv = df.to_csv('output.csv', index = None, header=True)
