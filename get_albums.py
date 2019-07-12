@@ -4,8 +4,10 @@ import re
 import sys
 import os
 import individual_album
-from multiprocessing.dummy import Pool as ThreadPool
+import multiprocessing
 
+def log_e(e):
+  print(e)
 
 def get_id_list(url, sentiment):
     try:
@@ -29,11 +31,17 @@ def get_id_list(url, sentiment):
 
     print("Number of albums to process: " + str(len(result)))
     if sentiment:
-        pool = ThreadPool(8)
-        results = pool.map(individual_album.grab_content, result)
+        pool = multiprocessing.Pool()
+        # pool = ThreadPool(8)
+        # results = pool.map(individual_album.grab_content, result)
+        pool.map_async(individual_album.grab_content, result, error_callback=log_e)
+        pool.close() 
+        pool.join() 
+        # for item in result:
+            # individual_album.grab_content(item, sentiment)
     else:
         for item in result:
-            individual_album.grab_content(item, sentiment)
+            individual_album.grab_content(item, sentiment=False)
 
 if __name__ == "__main__":
     url = "http://www.progarchives.com/top-prog-albums.asp?ssubgenres=&salbumtypes=1&syears=&scountries=&sminratings=0&smaxratings=0&sminavgratings=0&smaxresults=250&x=0&y=0#list"

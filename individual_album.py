@@ -59,7 +59,7 @@ def grab_user_date(soup):
     return epoch_time_list
 
 
-def grab_content(id, sentiment="False"):
+def grab_content(id, sentiment=True):
     url = "http://www.progarchives.com/album-reviews.asp?id=" + id
     print("Getting album id: " + str(id))
     success = False
