@@ -4,8 +4,10 @@ import re
 import sys
 import os
 import individual_album
+from multiprocessing.dummy import Pool as ThreadPool
 
-def get_id_list(url):
+
+def get_id_list(url, sentiment):
     try:
         page = requests.get(url).text
     except Exception as e:
@@ -25,12 +27,18 @@ def get_id_list(url):
         if "#buymusic" in item:
             result.remove(item)
 
-    for item in result:
-        individual_album.grab_content(item)
+    print("Number of albums to process: " + str(len(result)))
+    if sentiment:
+        pool = ThreadPool(8)
+        results = pool.map(individual_album.grab_content, result)
+    else:
+        for item in result:
+            individual_album.grab_content(item, sentiment)
 
 if __name__ == "__main__":
     url = "http://www.progarchives.com/top-prog-albums.asp?ssubgenres=&salbumtypes=1&syears=&scountries=&sminratings=0&smaxratings=0&sminavgratings=0&smaxresults=250&x=0&y=0#list"
     if not os.path.isdir("csv_output"):
         os.mkdir("csv_output")
-    get_id_list(url)
+    sentiment = True
+    get_id_list(url, sentiment)
     
