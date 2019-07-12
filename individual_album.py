@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from dateutil import parser
 import nlp
+import os
 
 def get_stars(text_content):
     # finding the number of stars using attribute
@@ -15,13 +16,18 @@ def get_stars(text_content):
 def get_dict_list(target_text, epoch_time_list):
     dict_list = list()
     count = 1
+    sentiment = False
     len_data = len(target_text)
     for text, time in zip(target_text, epoch_time_list):
         save_dict = {"comment":"", "stars":"", "epoch_time":time, "sentiment":""}
         save_dict["comment"] = text.get_text()
         print("Analysing %d comments out of %d comments" % (count, len_data))
         count = count + 1
-        sentiment = nlp.get_sentiment(text.get_text())
+        sentiment = ""
+        if sentiment:
+            sentiment = nlp.get_sentiment(text.get_text())
+        else:
+            sentiment = "N/A"
         save_dict["sentiment"] = sentiment
         save_dict["stars"] = get_stars(text)
         dict_list.append(save_dict)
@@ -50,7 +56,9 @@ def grab_user_date(soup):
     return epoch_time_list
 
 
-def grab_content(url, id):
+def grab_content(id):
+    url = "http://www.progarchives.com/album-reviews.asp?id=" + id
+    print("Getting album id: " + str(id))
     try:
         page = requests.get(url).text
     except Exception as e:
@@ -60,12 +68,18 @@ def grab_content(url, id):
     # get the comment div
     target_style = "line-height:1.4em;margin-left:155px;border-left: 1px dotted #dbd5c5;padding:5px 10px;"
     target_text = soup.find_all('div', {'style':target_style})
+    title = soup.find('title').get_text()
+    title = title.replace(" reviews", "")
+    title = title.replace(" ", "_")
     epoch_time_list = grab_user_date(soup)
     # export to csv
     dict_list = get_dict_list(target_text, epoch_time_list)
     df = pd.DataFrame(dict_list)
-    export_csv = df.to_csv('%d.csv'%(id), index = None, header=True)
+    path = "csv_output"
+    export_csv = df.to_csv(path + '/%s.csv'%(title), index = None, header=True)
 
 if __name__ == "__main__":
     url = "http://www.progarchives.com/album-reviews.asp?id=1440"
-    grab_content(url, id=1440)
+    if not os.path.isdir("csv_output"):
+        os.mkdir("csv_output")
+    grab_content(id="1440")
